@@ -15,6 +15,9 @@
 class Unpacker2 : public TObject {
   
 private:
+
+public:
+
   
   std::map<UInt_t, UInt_t> tdc_offsets;
   
@@ -39,7 +42,7 @@ private:
 
   const static int kMaxAllowedRepetitions = 1;
   
-public:
+
 
   Unpacker2();
   ~Unpacker2() {}

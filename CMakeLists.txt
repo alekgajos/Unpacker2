@@ -152,7 +152,7 @@ ROOT_GENERATE_DICTIONARY(${DICTIONARY_NAME} ${HEADERS_WITH_DICTIONARY_REQUIRED}
 ## End of configuration of ROOT
 
 # Set all sources
-set(SOURCES src/Unpacker2.cc src/EventIII.cc src/TDCChannel.cc ${DICTIONARY_NAME}.cxx)
+set(SOURCES src/Unpacker2.cc src/Unpacker2D.cc src/EventIII.cc src/TDCChannel.cc ${DICTIONARY_NAME}.cxx)
 
 add_library(Unpacker2 SHARED ${SOURCES})
 #TODO: maybe change namespace to JPetTomography?
