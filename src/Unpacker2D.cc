@@ -20,7 +20,7 @@
 //
 //############
 
-#define ENDPOINTS 2
+#define ENDPOINTS 4
 
 
 using namespace std;
@@ -80,31 +80,26 @@ void Unpacker2D::BuildEvent(EventIII* e, map<UInt_t, vector<UInt_t> >* m, map<UI
 			rising = (data >> 31);
 
 			if (useTDCcorrection == true)
-				time = (coarse * 2.7027027027) + ((TDCcorrections[m_it->first]->GetBinContent(fine + 1)) / 1000.0);
+				time = (coarse * 2.5) - ((TDCcorrections[m_it->first]->GetBinContent(fine + 1)) / 1000.0);
 			else
-				time = (coarse * 2.7027027027) + (fine * 0.02111484375);
+				time = (coarse * 2.5) - (fine * 0.0208333333);
 				
 			refTime = refTimes->find((int)((m_it->first - 2100) / 105) * 105 + 2100)->second;
 
-			// printf("endp id: %x, refTime: %lf ch: %d r: %d hitTime: %lf timeDiff: %lf coarse: %d\n", (int)((m_it->first - 2100) / 105) * 105 + 2100, refTime, m_it->first - 2100, rising, time, (time - refTime) < 0 ? time + ((0xffff * 2.7) - refTime) : time - refTime, coarse);
-			// printf("%x\n", (int)(refTime / 2.7));
-
 			if (rising == 0) {
 				if (time - refTime < 0)
-					time_t = time + ((0x10000 * 2.7027027027) - refTime);
+					time_t = time + ((0x10000 * 2.5) - refTime);
 				else 
 					time_t = time - refTime;
 
-				// if (time_t > 50000.0) printf("endp id: %x, refTime: %lf ch: %d r: %d hitTime: %lf timeDiff: %lf coarse: %d\n", (int)((m_it->first - 2100) / 105) * 105 + 2100, refTime, m_it->first - 2100, rising, time, (time - refTime) < 0 ? time + ((0xffff * 2.7) - refTime) : time - refTime, coarse);
 				tc->AddLead(time_t);
 			}
 			else {
 				if (time - refTime < 0)
-					time_t = time + ((0x10000 * 2.7027027027) - refTime);
+					time_t = time + ((0x10000 * 2.5) - refTime);
 				else
 					time_t = time - refTime;
 
-				// if (time_t > 50000.0) printf("endp id: %x, refTime: %lf ch: %d r: %d hitTime: %lf timeDiff: %lf coarse: %d\n", (int)((m_it->first - 2100) / 105) * 105 + 2100, refTime, m_it->first - 2100, rising, time, (time - refTime) < 0 ? time + ((0xffff * 2.7) - refTime) : time - refTime, coarse);
 				tc->AddTrail(time_t);
 			}
 	
@@ -481,19 +476,18 @@ void Unpacker2D::DistributeEventsSingleStep(string filename) {
 						if (channel == 104) {
 							if (useTDCcorrection == true) {
 								//if (nEvents > 0) refTimes_previous[currentOffset] = refTimes[currentOffset];
-								refTimes[currentOffset] = (((data4 >> 8) & 0xffff) * 2.7027027027) + ((TDCcorrections[channel + currentOffset]->GetBinContent((data4 & 0xff) + 1)) / 1000.0);
+								refTimes[currentOffset] = (((data4 >> 8) & 0xffff) * 2.5) - ((TDCcorrections[channel + currentOffset]->GetBinContent((data4 & 0xff) + 1)) / 1000.0);
 
 								refTimesCtr++;
 
 							}
 							else {
 								//if (nEvents > 0) refTimes_previous[currentOffset] = refTimes[currentOffset];
-								refTimes[currentOffset] = (((data4 >> 8) & 0xffff) * 2.7027027027) + ((data4 & 0xff) * 0.02111484375);
+								refTimes[currentOffset] = (((data4 >> 8) & 0xffff) * 2.5) - ((data4 & 0xff) * 0.0208333333);
 
 								refTimesCtr++;
 							}
-							// printf("GOT REF: w: %d, trg: %d, %lf, x: %x coarse: %x\n", currentOffset, ftabTrgn, refTimes[currentOffset], data4, ((data4 >> 8) & 0xffff));
-							// printf("%d - %lf - %lf\n",  (((data4 >> 8) & 0xffff) * 128) + ((data4 & 0xff)), ((((data4 >> 8) & 0xffff) * 128) + ((data4 & 0xff))) * 0.021, ((((data4 >> 8) & 0xffff) * 128) + ((data4 & 0xff))) * 0.02111484375);
+
 						}
 						else {
 							// if (channel != 99)
