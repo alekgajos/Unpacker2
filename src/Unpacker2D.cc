@@ -20,7 +20,7 @@
 //
 //############
 
-#define ENDPOINTS 4
+#define ENDPOINTS 2
 
 
 using namespace std;
