@@ -13,16 +13,6 @@
 #include "EventIII.h"
 #include "TDCChannel.h"
 
-
-//############
-//
-// DEFINE THE NUMBER OF ENDPOINTS
-//
-//############
-
-#define ENDPOINTS 2
-
-
 using namespace std;
 
 UInt_t ReverseHexDJ(UInt_t n) {
@@ -80,9 +70,9 @@ void Unpacker2D::BuildEvent(EventIII* e, map<UInt_t, vector<UInt_t> >* m, map<UI
 			rising = (data >> 31);
 
 			if (useTDCcorrection == true)
-				time = (coarse * 2.5) - ((TDCcorrections[m_it->first]->GetBinContent(fine + 1)) / 1000.0);
+				time = (coarse * 2.5) - ((TDCcorrections[m_it->first]->GetBinContent(fine + 1)));
 			else
-				time = (coarse * 2.5) - (fine * 0.0208333333);
+                          time = (coarse * 2.5) - ((fine-4) * 0.0208333333);
 				
 			refTime = refTimes->find((int)((m_it->first - 2100) / 105) * 105 + 2100)->second;
 
@@ -308,8 +298,13 @@ void Unpacker2D::DistributeEventsSingleStep(string filename) {
 		unsigned int packet_buf[1024];
 		int packet_buf_ctr = 0;
 
+                int activeFTABs = 0;
+                
 		while(!file->eof()) {
-			nBytes = 0;
+                  
+                  activeFTABs = 0;
+                  
+                  nBytes = 0;
 			if (nEvents % 10000 == 0) {
 				printf("%d\n", nEvents);
 			}
@@ -397,7 +392,8 @@ void Unpacker2D::DistributeEventsSingleStep(string filename) {
 				data4 = ReverseHexDJ(data4);
 				ftabSize = data4 >> 16;
 				ftabId = data4 & 0xffff;
-
+                                activeFTABs++;
+                                
 				ftabWords = ftabSize - 2;
 
 				// printf("%08x\n",data4);
@@ -476,14 +472,14 @@ void Unpacker2D::DistributeEventsSingleStep(string filename) {
 						if (channel == 104) {
 							if (useTDCcorrection == true) {
 								//if (nEvents > 0) refTimes_previous[currentOffset] = refTimes[currentOffset];
-								refTimes[currentOffset] = (((data4 >> 8) & 0xffff) * 2.5) - ((TDCcorrections[channel + currentOffset]->GetBinContent((data4 & 0xff) + 1)) / 1000.0);
+								refTimes[currentOffset] = (((data4 >> 8) & 0xffff) * 2.5) - ((TDCcorrections[channel + currentOffset]->GetBinContent((data4 & 0xff) + 1)));
 
 								refTimesCtr++;
 
 							}
 							else {
 								//if (nEvents > 0) refTimes_previous[currentOffset] = refTimes[currentOffset];
-								refTimes[currentOffset] = (((data4 >> 8) & 0xffff) * 2.5) - ((data4 & 0xff) * 0.0208333333);
+                                                          refTimes[currentOffset] = (((data4 >> 8) & 0xffff) * 2.5) - (((data4 & 0xff)-4) * 0.0208333333);
 
 								refTimesCtr++;
 							}
@@ -509,7 +505,7 @@ void Unpacker2D::DistributeEventsSingleStep(string filename) {
 					// printf("refTimes %d %d\n", refTimes.size(), missing_ref, refTimesCtr);
 
 		// printf("No: %d trg diff: %d  ftrgnr: %d sequence: %d hold: %d refsctr: %d, ref: %lf", nEvents, (ftabTrgn - prevTrgId), ftabTrgn, trgSequence, trgSequenceHold, refTimesCtr, refTimes_previous[2100]);
-					if (refTimesCtr == ENDPOINTS) {
+					if (refTimesCtr == activeFTABs) {
 					// if (refTimesCtr == 4) {
 					//if (refTimesCtr == 1) {
 						// printf("No: %d trg diff: %d   ref: %lf\n", nEvents, (ftabTrgn - prevTrgId), refTimes_previous[2100]);
@@ -555,7 +551,7 @@ built++;
 							trgSequence = false;
 						}
 
-						if (refTimesCtrPrevious == ENDPOINTS) {
+						if (refTimesCtrPrevious == activeFTABs) {
 							trgSequenceHold = false;
 						}
 					}
